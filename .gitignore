@@ -3,3 +3,4 @@ coverage/*
 hivemind_back_env/*
 .coverage
 .env
+__pycache__
