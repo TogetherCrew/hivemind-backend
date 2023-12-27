@@ -1,30 +1,11 @@
 import unittest
 
 from tc_hivemind_backend.db.credentials import (
-    load_mongo_credentials,
     load_postgres_credentials,
 )
 
 
 class TestCredentialLoadings(unittest.TestCase):
-    def test_mongo_envs_check_type(self):
-        mongo_creds = load_mongo_credentials()
-
-        self.assertIsInstance(mongo_creds, dict)
-
-    def test_mongo_envs_values(self):
-        mongo_creds = load_mongo_credentials()
-
-        self.assertNotEqual(mongo_creds["user"], None)
-        self.assertNotEqual(mongo_creds["password"], None)
-        self.assertNotEqual(mongo_creds["host"], None)
-        self.assertNotEqual(mongo_creds["port"], None)
-
-        self.assertIsInstance(mongo_creds["user"], str)
-        self.assertIsInstance(mongo_creds["password"], str)
-        self.assertIsInstance(mongo_creds["host"], str)
-        self.assertIsInstance(mongo_creds["port"], str)
-
     def test_postgres_envs_type(self):
         postgres_creds = load_postgres_credentials()
 
