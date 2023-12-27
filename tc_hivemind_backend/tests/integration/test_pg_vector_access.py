@@ -2,10 +2,10 @@ import unittest
 
 import psycopg2
 from llama_index import Document
+from llama_index.indices.vector_store import VectorStoreIndex
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
 from tc_hivemind_backend.db.pg_db_utils import setup_db
 from tc_hivemind_backend.pg_vector_access import PGVectorAccess
-from llama_index.indices.vector_store import VectorStoreIndex
 
 
 class TestPGVectorAccess(unittest.TestCase):
@@ -40,7 +40,7 @@ class TestPGVectorAccess(unittest.TestCase):
                     "author_username": "author#1",
                     "author_global_name": "author_global#1",
                     "date": "2023-08-01",
-                }
+                },
             )
         ]
         self.setUpDB(dbname=dbname, table_name=table)

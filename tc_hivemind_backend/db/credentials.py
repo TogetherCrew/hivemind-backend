@@ -51,4 +51,3 @@ def load_postgres_credentials() -> dict[str, str]:
     credentials["db_name"] = os.getenv("POSTGRES_DBNAME", "")
 
     return credentials
-
