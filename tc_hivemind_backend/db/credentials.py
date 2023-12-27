@@ -22,6 +22,5 @@ def load_postgres_credentials() -> dict[str, str]:
     credentials["password"] = os.getenv("POSTGRES_PASS", "")
     credentials["user"] = os.getenv("POSTGRES_USER", "")
     credentials["port"] = os.getenv("POSTGRES_PORT", "")
-    credentials["db_name"] = os.getenv("POSTGRES_DBNAME", "")
 
     return credentials

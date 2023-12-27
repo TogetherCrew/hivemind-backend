@@ -12,9 +12,7 @@ from tc_hivemind_backend.db.utils.model_hyperparams import load_model_hyperparam
 
 
 class PGVectorAccess:
-    def __init__(
-        self, table_name: str, dbname: str | None = None, testing: bool = False
-    ) -> None:
+    def __init__(self, table_name: str, dbname: str, testing: bool = False) -> None:
         """
         the class to access VectorStoreIndex from postgres
 
@@ -24,7 +22,6 @@ class PGVectorAccess:
             the table name to access in postgres for vectors
         dbname : str
             the database to save the data under
-            default is None and it would read from .env
         testing : bool
             work with mock LLM and mock embedding model for testing purposes
         """
@@ -52,13 +49,9 @@ class PGVectorAccess:
             default is 1024 which is the cohere dimension
         """
         postgres_creds = load_postgres_credentials()
-        dbname = postgres_creds["db_name"]
-
-        if self.dbname is not None:
-            dbname = self.dbname  # overwriting the .env value
 
         vector_store = PGVectorStore.from_params(
-            database=dbname,
+            database=self.dbname,
             host=postgres_creds["host"],
             password=postgres_creds["password"],
             port=postgres_creds["port"],

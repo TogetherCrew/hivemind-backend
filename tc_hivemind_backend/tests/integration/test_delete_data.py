@@ -1,8 +1,8 @@
 from unittest import TestCase
 
+from tc_hivemind_backend.db.pg_db_utils import setup_db
 from tc_hivemind_backend.db.postgresql import PostgresSingleton
 from tc_hivemind_backend.db.utils.delete_data import delete_data
-from tc_hivemind_backend.db.pg_db_utils import setup_db
 
 
 class TestDeletePGData(TestCase):
