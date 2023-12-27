@@ -1,10 +1,9 @@
 import logging
 
-import psycopg2
 from tc_hivemind_backend.db.postgresql import PostgresSingleton
 
 
-def delete_data(deletion_query: str, dbname) -> None:
+def delete_data(deletion_query: str, dbname: str) -> None:
     """
     a wrapper function to add the deletion feature
 
@@ -12,8 +11,10 @@ def delete_data(deletion_query: str, dbname) -> None:
     -----------
     deletion_query : str
         the query to delete or modify the database
+    dbname : str
+        the database name to use
     """
-    connection: psycopg2.extensions.connection
+    postgres: PostgresSingleton
     try:
         # first connecting to no database to check the database availability
         postgres = PostgresSingleton(dbname=dbname)
@@ -25,4 +26,7 @@ def delete_data(deletion_query: str, dbname) -> None:
     except Exception as exp:
         logging.error(f"Database deletion error: {exp}")
     finally:
-        postgres.close_connection()
+        if postgres is not None:
+            postgres.close_connection()
+        else:
+            logging.error(f"No database with name {dbname}!")

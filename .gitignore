@@ -5,3 +5,5 @@ hivemind_back_env/*
 .env
 __pycache__
 *.pyc
+
+main.ipynb

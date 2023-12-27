@@ -1,3 +1,5 @@
+import logging
+
 import psycopg2
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
 
@@ -13,13 +15,17 @@ class PostgresSingleton:
 
     def connect(self, dbname: str | None):
         creds = load_postgres_credentials()
-        self.conn = psycopg2.connect(
-            dbname=dbname,
-            user=creds["user"],
-            password=creds["password"],
-            host=creds["host"],
-            port=creds["port"],
-        )
+        try:
+            self.conn = psycopg2.connect(
+                dbname=dbname,
+                user=creds["user"],
+                password=creds["password"],
+                host=creds["host"],
+                port=creds["port"],
+            )
+        except psycopg2.OperationalError as exp:
+            logging.error(f"Error initializing connection, exp: {exp}")
+            self.destroy_instance()
 
     def get_connection(self):
         """
