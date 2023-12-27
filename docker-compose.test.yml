@@ -19,6 +19,8 @@ services:
       - POSTGRES_PORT=5432
       - SENTRY_DSN=sample_dsn
       - SENTRY_ENV=local
+      - CHUNK_SIZE=512
+      - EMBEDDING_DIM=1024
     networks:
       - python_service_network
     volumes:
