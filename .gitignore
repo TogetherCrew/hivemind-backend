@@ -1,5 +1,5 @@
 coverage/*
 .DS_store
-.env
 hivemind_back_env/*
 .coverage
+.env
