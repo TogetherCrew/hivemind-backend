@@ -112,22 +112,15 @@ class PGVectorAccess:
         nodes = node_parser.get_nodes_from_documents(documents)
 
         for idx, node in enumerate(nodes):
-            logging.info(f"{batch_info} | Doing embedding {idx + 1}/{len(nodes)}")
-            node.embedding = self.embed_model.get_text_embedding(node.text)
-
-            if max_request_per_day and idx % max_request_per_day == 0:
-                logging.info(
-                    f"{msg}Sleeping for 24 hours to avoid per day rate limits!"
-                )
-                time.sleep(24 * 60 * 60 + 1)
-            if (
-                max_request_per_minute
-                and idx % max_request_per_minute == 0
-                and idx != 0
-                and idx != len(nodes)
-            ):
-                logging.info(f"{msg}Sleeping to avoid per miniute rate limits!")
-                time.sleep(61)
+            self._process_embedding(
+                node,
+                idx,
+                len(nodes),
+                msg=msg,
+                max_request_per_day=max_request_per_day,
+                max_request_per_minute=max_request_per_minute,
+                batch_info=batch_info,
+            )
 
         vector_store = self.setup_pgvector_index(embed_dim)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -212,6 +205,33 @@ class PGVectorAccess:
             vector_store=vector_store, service_context=service_context
         )
         return index
+
+    def _process_embedding(
+        self, node: BaseNode, idx: int, total_nodes: int, **kwargs
+    ) -> None:
+        """
+        compute embeddings for one node (assigning to variable property)
+        """
+        msg = kwargs.get("msg", "")
+        max_request_per_minute = kwargs.get("max_request_per_minute")
+        max_request_per_day = kwargs.get("max_request_per_day")
+        batch_info = kwargs.get("batch_info", "")
+
+        logging.info(f"{batch_info} | Doing embedding {idx + 1}/{total_nodes}")
+        node.embedding = self.embed_model.get_text_embedding(node.text)
+
+        if max_request_per_day and idx % max_request_per_day:
+            logging.info(f"{msg}Sleeping for 24 hours to avoid per day rate limits!")
+            time.sleep(24 * 60 * 60 + 1)
+
+        if (
+            max_request_per_minute
+            and idx % max_request_per_minute
+            and idx != 0
+            and idx != total_nodes
+        ):
+            logging.info(f"{msg}Sleeping to avoid per minute rate limits!")
+            time.sleep(61)
 
     def _delete_documents(self, deletion_query: str) -> None:
         """
