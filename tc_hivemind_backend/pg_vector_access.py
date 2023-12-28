@@ -66,7 +66,6 @@ class PGVectorAccess:
         community_id: str,
         documents: list[Document],
         node_parser: SimpleNodeParser | None = None,
-        max_request_per_minute: int | None = 3,
         **kwargs,
     ) -> None:
         """
@@ -81,11 +80,10 @@ class PGVectorAccess:
         node_parser : SimpleNodeParser | None
             get the node_parser
             default is None, meaning it would configure it with default values
-        max_request_per_minute : int | None
-            the maximum possible request count per limit which is the openai limits
-            if `None` it wouldn't do a sleep
-            default is 3 which is related to free version of openai API limits
         **kwargs :
+            max_request_per_minute : int | None
+                the maximum possible request count per limit which is the openai limits
+                if `None` it wouldn't do a sleep
             embed_dim : int
                 to configure the embedding dimension
                 default is set to be 1024 which is the cohere embedding dimension
@@ -100,27 +98,15 @@ class PGVectorAccess:
                 the query to delete some documents
         """
         msg = f"COMMUNITYID: {community_id} "
-        max_request_per_day: int | None = None
-        if "max_request_per_day" in kwargs:
-            max_request_per_day = kwargs["max_request_per_day"]
 
-        embed_dim: int = 1024
-        if "embed_dim" in kwargs:
-            embed_dim = kwargs["embed_dim"]
+        max_request_per_minute = kwargs.get("max_request_per_minute")
+        max_request_per_day = kwargs.get("max_request_per_day")
+        embed_dim: int = kwargs.get("embed_dim", 1024)
+        self.embed_model = kwargs.get("embed_model", self.embed_model)
+        deletion_query = kwargs.get("deletion_query", "")
+        node_parser = node_parser or SimpleNodeParser.from_defaults()
 
-        if "embed_model" in kwargs:
-            self.embed_model = kwargs["embed_model"]
-
-        deletion_query: str = ""
-        if "deletion_query" in kwargs:
-            deletion_query = kwargs["deletion_query"]
-
-        if node_parser is None:
-            node_parser = SimpleNodeParser.from_defaults()
-
-        batch_info: str = ""
-        if "batch_info" in kwargs:
-            batch_info = kwargs["batch_info"]
+        batch_info = kwargs.get("batch_info", "")
 
         nodes = node_parser.get_nodes_from_documents(documents)
 
@@ -128,17 +114,12 @@ class PGVectorAccess:
             logging.info(f"{batch_info} | Doing embedding {idx + 1}/{len(nodes)}")
             node.embedding = self.embed_model.get_text_embedding(node.text)
 
-            if max_request_per_day is not None and (idx + 1) % max_request_per_day == 0:
+            if max_request_per_day and idx % max_request_per_day == 0:
                 logging.info(
                     f"{msg}Sleeping for 24 hours to avoid per day rate limits!"
                 )
                 time.sleep(24 * 60 * 60 + 1)
-            if (
-                max_request_per_minute is not None
-                and (idx + 1) % max_request_per_minute == 0
-                and idx != 0
-                and (idx + 1) != len(nodes)
-            ):
+            if max_request_per_minute and idx % max_request_per_minute == 0 and idx != 0 and idx != len(nodes):
                 logging.info(f"{msg}Sleeping to avoid per miniute rate limits!")
                 time.sleep(61)
 
@@ -164,8 +145,6 @@ class PGVectorAccess:
         community_id: str,
         documents: list[Document],
         batch_size: int = 100,
-        node_parser: SimpleNodeParser | None = None,
-        max_request_per_minute: int | None = 3,
         **kwargs,
     ):
         """
@@ -179,14 +158,13 @@ class PGVectorAccess:
             list of llama_idex documents
         batch_size : int
             the batch size
-        node_parser : SimpleNodeParser | None
-            get the node_parser
-            default is None, meaning it would configure it with default values
-        max_request_per_minute : int | None
-            the maximum possible request count per limit which is the openai limits
-            if `None` it wouldn't do a sleep
-            default is 3 which is related to free version of openai API limits
         **kwargs :
+            node_parser : SimpleNodeParser | None
+                get the node_parser
+                default is None, meaning it would configure it with default values
+            max_request_per_minute : int | None
+                the maximum possible request count per limit which is the openai limits
+                if `None` it wouldn't do a sleep
             embed_dim : int
                 to configure the embedding dimension
                 default is set to be 1024 which is open ai embedding dimension
@@ -198,6 +176,8 @@ class PGVectorAccess:
             deletion_query : str
                 the query to delete some documents
         """
+        node_parser = kwargs.get("node_parser")
+
         msg = f"COMMUNITYID: {community_id} "
         logging.info(f"{msg}Starting embedding and saving batch job")
         for batch_idx, current_batch in enumerate(range(0, len(documents), batch_size)):
@@ -207,8 +187,7 @@ class PGVectorAccess:
             self.save_documents(
                 community_id,
                 documents[current_batch : current_batch + batch_size],
-                node_parser,
-                max_request_per_minute,
+                node_parser=node_parser,
                 batch_info=batch_info,
                 **kwargs,
             )
