@@ -2,6 +2,7 @@ import logging
 import time
 
 from llama_index import Document, MockEmbedding, ServiceContext, StorageContext
+from llama_index.schema import BaseNode
 from llama_index.embeddings import BaseEmbedding, OpenAIEmbedding
 from llama_index.indices.vector_store import VectorStoreIndex
 from llama_index.node_parser import SimpleNodeParser
@@ -104,9 +105,9 @@ class PGVectorAccess:
         embed_dim: int = kwargs.get("embed_dim", 1024)
         self.embed_model = kwargs.get("embed_model", self.embed_model)
         deletion_query = kwargs.get("deletion_query", "")
-        node_parser = node_parser or SimpleNodeParser.from_defaults()
-
         batch_info = kwargs.get("batch_info", "")
+
+        node_parser = node_parser or SimpleNodeParser.from_defaults()
 
         nodes = node_parser.get_nodes_from_documents(documents)
 
@@ -119,26 +120,20 @@ class PGVectorAccess:
                     f"{msg}Sleeping for 24 hours to avoid per day rate limits!"
                 )
                 time.sleep(24 * 60 * 60 + 1)
-            if max_request_per_minute and idx % max_request_per_minute == 0 and idx != 0 and idx != len(nodes):
+            if (
+                max_request_per_minute
+                and idx % max_request_per_minute == 0
+                and idx != 0
+                and idx != len(nodes)
+            ):
                 logging.info(f"{msg}Sleeping to avoid per miniute rate limits!")
                 time.sleep(61)
 
         vector_store = self.setup_pgvector_index(embed_dim)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
-
-        service_context = ServiceContext.from_defaults(
-            node_parser=node_parser,
-            llm=self.llm,
-            embed_model=self.embed_model,
-        )
-        if deletion_query != "":
-            logging.info(f"{msg}deleting some previous data in database!")
-            self._delete_documents(deletion_query)
-
-        logging.info(f"{msg}Saving the embedded documents within database!")
-        _ = VectorStoreIndex(
-            nodes, service_context=service_context, storage_context=storage_context
-        )
+        service_context = self._create_service_context(node_parser)
+        self._handle_deletion(deletion_query, msg)
+        self._save_embedded_documents(nodes, service_context, storage_context)
 
     def save_documents_in_batches(
         self,
@@ -228,3 +223,27 @@ class PGVectorAccess:
             the query to delete the data
         """
         delete_data(deletion_query=deletion_query, dbname=self.dbname)
+
+    def _save_embedded_documents(
+        self,
+        nodes: list[BaseNode],
+        service_context: ServiceContext,
+        storage_context: StorageContext,
+        msg: str,
+    ) -> None:
+        logging.info(f"{msg}Saving the embedded documents within the database!")
+        _ = VectorStoreIndex(
+            nodes, service_context=service_context, storage_context=storage_context
+        )
+
+    def _handle_deletion(self, deletion_query: str, msg: str) -> None:
+        if deletion_query:
+            logging.info(f"{msg}Deleting some previous data in database!")
+            self._delete_documents(deletion_query)
+
+    def _create_service_context(self, node_parser: SimpleNodeParser) -> ServiceContext:
+        return ServiceContext.from_defaults(
+            node_parser=node_parser,
+            llm=self.llm,
+            embed_model=self.embed_model,
+        )
