@@ -2,10 +2,10 @@ import logging
 import time
 
 from llama_index import Document, MockEmbedding, ServiceContext, StorageContext
-from llama_index.schema import BaseNode
 from llama_index.embeddings import BaseEmbedding, OpenAIEmbedding
 from llama_index.indices.vector_store import VectorStoreIndex
 from llama_index.node_parser import SimpleNodeParser
+from llama_index.schema import BaseNode
 from llama_index.vector_stores import PGVectorStore
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
 from tc_hivemind_backend.db.utils.delete_data import delete_data
@@ -133,7 +133,7 @@ class PGVectorAccess:
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         service_context = self._create_service_context(node_parser)
         self._handle_deletion(deletion_query, msg)
-        self._save_embedded_documents(nodes, service_context, storage_context)
+        self._save_embedded_documents(nodes, service_context, storage_context, msg)
 
     def save_documents_in_batches(
         self,
