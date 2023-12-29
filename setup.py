@@ -5,13 +5,13 @@ with open("requirements.txt") as f:
 
 
 setup(
-    name="tc-python-lib-template",
+    name="tc-hivemind-backend",
     version="1.0.0",
     author="Mohammad Amin Dadgar, TogetherCrew",
     maintainer="Mohammad Amin Dadgar",
     maintainer_email="dadgaramin96@gmail.com",
     packages=find_packages(),
-    description="A python library template for future togethercrew python repos",
+    description="This repository is a shared library for together hivemind etl and bot codes.",
     long_description=open("README.md").read(),
     install_requires=requirements,
 )

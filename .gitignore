@@ -1,3 +1,9 @@
 coverage/*
 .DS_store
+hivemind_back_env/*
+.coverage
 .env
+__pycache__
+*.pyc
+
+main.ipynb
