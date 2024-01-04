@@ -40,7 +40,7 @@ class PGVectorAccess:
         self.dbname = dbname
         self.testing = testing
 
-        self.llm: str = kwargs.get("llm", "default")
+        self.llm: str | None = kwargs.get("llm", "default")
         self.embed_model: BaseEmbedding = kwargs.get("embed_model", OpenAIEmbedding())
 
         if testing:
