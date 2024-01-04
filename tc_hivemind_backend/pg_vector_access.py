@@ -13,7 +13,9 @@ from tc_hivemind_backend.db.utils.model_hyperparams import load_model_hyperparam
 
 
 class PGVectorAccess:
-    def __init__(self, table_name: str, dbname: str, testing: bool = False) -> None:
+    def __init__(
+        self, table_name: str, dbname: str, testing: bool = False, **kwargs
+    ) -> None:
         """
         the class to access VectorStoreIndex from postgres
 
@@ -25,17 +27,23 @@ class PGVectorAccess:
             the database to save the data under
         testing : bool
             work with mock LLM and mock embedding model for testing purposes
+        **kwargs :
+            embed_model : BaseEmbedding
+                an embedding model to use for all tasks defined in this class
+                default is `OpenAIEmbedding`
+            llm : str | LLM
+                the llm model to use for all tasks defined in this class
+                default is set to `default` string which would use the `OpenAI`.
+                It is the default of the `llama_index` library
         """
         self.table_name = table_name
         self.dbname = dbname
         self.testing = testing
 
-        self.llm: str | None
-        self.embed_model: BaseEmbedding
-        if not self.testing:
-            self.embed_model = OpenAIEmbedding()
-            self.llm = "default"
-        else:
+        self.llm: str | None = kwargs.get("llm", "default")
+        self.embed_model: BaseEmbedding = kwargs.get("embed_model", OpenAIEmbedding())
+
+        if testing:
             self.embed_model = MockEmbedding(embed_dim=1024)
             self.llm = None
 
@@ -189,17 +197,20 @@ class PGVectorAccess:
         **kwargs :
             embed_dim : int
                 to configure the embedding dimension
+                default will be read from `.env`
+            embed_model : BaseEmbedding
+                the embedding model to use
+                default is the one set when initializing the class
         """
         _, embedding_dim = load_model_hyperparams()
 
-        embed_dim: int = embedding_dim
-        if "embed_dim" in kwargs:
-            embed_dim = kwargs["embed_dim"]
+        embed_dim: int = kwargs.get("embed_dim", embedding_dim)
+        embed_model: BaseEmbedding = kwargs.get("embed_model", self.embed_model)
 
         vector_store = self.setup_pgvector_index(embed_dim)
         service_context = ServiceContext.from_defaults(
             llm=self.llm,
-            embed_model=self.embed_model,
+            embed_model=embed_model,
         )
         index = VectorStoreIndex.from_vector_store(
             vector_store=vector_store, service_context=service_context
