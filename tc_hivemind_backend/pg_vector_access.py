@@ -74,7 +74,6 @@ class PGVectorAccess:
         self,
         community_id: str,
         documents: list[Document],
-        node_parser: SimpleNodeParser | None = None,
         **kwargs,
     ) -> None:
         """
@@ -86,9 +85,6 @@ class PGVectorAccess:
             the community id for the case of loggging
         documents : list[llama_index.Document]
             list of llama_idex documents
-        node_parser : SimpleNodeParser | None
-            get the node_parser
-            default is None, meaning it would configure it with default values
         **kwargs :
             max_request_per_minute : int | None
                 the maximum possible request count per limit which is the openai limits
@@ -103,6 +99,9 @@ class PGVectorAccess:
                 default will be the OpenAIEmbedding
             batch_info : str
                 the information about the batch number that the loop is within
+            node_parser : SimpleNodeParser | None
+                get the node_parser
+                default is None, meaning it would configure it with default values
             deletion_query : str
                 the query to delete some documents
         """
@@ -114,6 +113,7 @@ class PGVectorAccess:
         self.embed_model = kwargs.get("embed_model", self.embed_model)
         deletion_query = kwargs.get("deletion_query", "")
         batch_info = kwargs.get("batch_info", "")
+        node_parser = kwargs.get("node_parser", None)
 
         node_parser = node_parser or SimpleNodeParser.from_defaults()
 
@@ -172,8 +172,6 @@ class PGVectorAccess:
             deletion_query : str
                 the query to delete some documents
         """
-        node_parser = kwargs.get("node_parser")
-
         msg = f"COMMUNITYID: {community_id} "
         logging.info(f"{msg}Starting embedding and saving batch job")
         for batch_idx, current_batch in enumerate(range(0, len(documents), batch_size)):
@@ -183,7 +181,6 @@ class PGVectorAccess:
             self.save_documents(
                 community_id,
                 documents[current_batch : current_batch + batch_size],
-                node_parser=node_parser,
                 batch_info=batch_info,
                 **kwargs,
             )
