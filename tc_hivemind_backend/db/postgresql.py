@@ -8,16 +8,22 @@ class PostgresSingleton:
     _instance = None
 
     def __new__(cls, dbname: str | None, *args, **kwargs):
+        """
+        if `db_name` was `None`, connect to default database in .env
+        """
         if cls._instance is None:
             cls._instance = super().__new__(cls, *args, **kwargs)
             cls._instance.connect(dbname)
         return cls._instance
 
     def connect(self, dbname: str | None):
+        """
+        connect to postgrsql instance
+        """
         creds = load_postgres_credentials()
         try:
             self.conn = psycopg2.connect(
-                dbname=dbname,
+                dbname=dbname or creds["db_name"],
                 user=creds["user"],
                 password=creds["password"],
                 host=creds["host"],
