@@ -5,7 +5,9 @@ import psycopg2
 from tc_hivemind_backend.db.postgresql import PostgresSingleton
 
 
-def setup_db(community_id: str, dbname: str, latest_date_query: str) -> datetime | None:
+def setup_db(
+    community_id: str, dbname: str, latest_date_query: str | None = None
+) -> datetime | None:
     """
     setup the database.
     create a database if not available, else get the latest message saved
@@ -18,8 +20,10 @@ def setup_db(community_id: str, dbname: str, latest_date_query: str) -> datetime
         the database name to create or access its database
     guild_id : str
         the guild id to create a database for
-    latest_date_query : str
+    latest_date_query : str | None
         the query to get latest date of a message
+        if `None`, then no need to check for latest_message date
+        the return would be also `None` if this field was `None`
 
     Returns
     ---------
@@ -30,22 +34,27 @@ def setup_db(community_id: str, dbname: str, latest_date_query: str) -> datetime
     from_date: datetime | None = None
     connection: psycopg2.extensions.connection
     try:
-        # first connecting to no database to check the database availability
-        postgres = PostgresSingleton(dbname=None)
-        connection = postgres.get_connection()
-        connection.autocommit = True
-        cursor = connection.cursor()
-        logging.info(f"{msg}Creating database {dbname}")
-        cursor.execute(f"CREATE DATABASE {dbname};")
-        cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
-        cursor.close()
-        connection.close()
-    except psycopg2.errors.DuplicateDatabase:
-        logging.info(f"{msg}Database already exist!")
-        logging.info(f"{msg}Checking the latest saved message!")
-        postgres.close_connection()
-        from_date = get_latest_msg(community_id, dbname, latest_date_query)
-
+        postgres = PostgresSingleton(dbname=dbname)
+        if postgres is not None:
+            logging.info(f"{msg}Database {dbname} is already available!")
+            postgres.close_connection()
+            if latest_date_query is not None:
+                logging.info(f"{msg}Checking the latest saved message!")
+                from_date = get_latest_msg(community_id, dbname, latest_date_query)
+        else:
+            logging.warning(
+                f"{msg}Database {dbname} is Not available! Creating one instead!"
+            )
+            # Connecting to default db passed in `.env`
+            postgres_default_db = PostgresSingleton(dbname=None)
+            connection = postgres_default_db.get_connection()
+            connection.autocommit = True
+            cursor = connection.cursor()
+            logging.info(f"{msg}Creating database {dbname}")
+            cursor.execute(f"CREATE DATABASE {dbname};")
+            cursor.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+            cursor.close()
+            connection.close()
     except Exception as exp:
         logging.error(f"{msg}database initialization error: {exp}")
 
