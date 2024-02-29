@@ -133,7 +133,6 @@ class PGVectorAccess:
         vector_store = self.setup_pgvector_index(embed_dim)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         service_context = self._create_service_context(node_parser)
-        self._handle_deletion(deletion_query, msg)
         self._save_embedded_documents(nodes, service_context, storage_context, msg)
 
     def save_documents_in_batches(
@@ -174,6 +173,11 @@ class PGVectorAccess:
         """
         msg = f"COMMUNITYID: {community_id} "
         logging.info(f"{msg}Starting embedding and saving batch job")
+
+        deletion_query = kwargs.get("deletion_query", None)
+        if deletion_query:
+            self._handle_deletion(deletion_query, msg)
+
         for batch_idx, current_batch in enumerate(range(0, len(documents), batch_size)):
             batch_info = (
                 f"{msg}Batch {batch_idx + 1}/{(len(documents) // batch_size) + 1}"
