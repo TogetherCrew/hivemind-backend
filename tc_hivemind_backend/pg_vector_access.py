@@ -102,8 +102,6 @@ class PGVectorAccess:
             node_parser : SimpleNodeParser | None
                 get the node_parser
                 default is None, meaning it would configure it with default values
-            deletion_query : str
-                the query to delete some documents
         """
         msg = f"COMMUNITYID: {community_id} "
 
@@ -111,7 +109,6 @@ class PGVectorAccess:
         max_request_per_day = kwargs.get("max_request_per_day")
         embed_dim: int = kwargs.get("embed_dim", 1024)
         self.embed_model = kwargs.get("embed_model", self.embed_model)
-        deletion_query = kwargs.get("deletion_query", "")
         batch_info = kwargs.get("batch_info", "")
         node_parser = kwargs.get("node_parser", None)
 
