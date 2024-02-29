@@ -102,8 +102,6 @@ class PGVectorAccess:
             node_parser : SimpleNodeParser | None
                 get the node_parser
                 default is None, meaning it would configure it with default values
-            deletion_query : str
-                the query to delete some documents
         """
         msg = f"COMMUNITYID: {community_id} "
 
@@ -111,7 +109,6 @@ class PGVectorAccess:
         max_request_per_day = kwargs.get("max_request_per_day")
         embed_dim: int = kwargs.get("embed_dim", 1024)
         self.embed_model = kwargs.get("embed_model", self.embed_model)
-        deletion_query = kwargs.get("deletion_query", "")
         batch_info = kwargs.get("batch_info", "")
         node_parser = kwargs.get("node_parser", None)
 
@@ -133,7 +130,6 @@ class PGVectorAccess:
         vector_store = self.setup_pgvector_index(embed_dim)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
         service_context = self._create_service_context(node_parser)
-        self._handle_deletion(deletion_query, msg)
         self._save_embedded_documents(nodes, service_context, storage_context, msg)
 
     def save_documents_in_batches(
@@ -174,6 +170,11 @@ class PGVectorAccess:
         """
         msg = f"COMMUNITYID: {community_id} "
         logging.info(f"{msg}Starting embedding and saving batch job")
+
+        deletion_query = kwargs.get("deletion_query", None)
+        if deletion_query:
+            self._handle_deletion(deletion_query, msg)
+
         for batch_idx, current_batch in enumerate(range(0, len(documents), batch_size)):
             batch_info = (
                 f"{msg}Batch {batch_idx + 1}/{(len(documents) // batch_size) + 1}"

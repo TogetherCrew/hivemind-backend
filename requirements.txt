@@ -6,7 +6,7 @@ python-dotenv>=1.0.0
 tc_messageBroker>=1.6.3
 pymongo>=4.3.3, <5.0.0
 neo4j>=5.8.0, <6.0.0
-llama-index>=0.9.21, <1.0.0
+llama-index>=0.9.21, <0.10.0
 sqlalchemy[asyncio]
 cohere>=4.39, <5.0.0
 pgvector
