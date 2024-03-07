@@ -37,9 +37,7 @@ class PGVectorAccess:
         self.table_name = table_name
         self.dbname = dbname
         self.testing = testing
-        self.embed_model: BaseEmbedding = kwargs.get(
-            "embed_model", CohereEmbedding()
-        )
+        self.embed_model: BaseEmbedding = kwargs.get("embed_model", CohereEmbedding())
 
         if testing:
             self.embed_model = MockEmbedding(embed_dim=1024)
