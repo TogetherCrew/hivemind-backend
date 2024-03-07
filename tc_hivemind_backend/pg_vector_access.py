@@ -1,16 +1,17 @@
 import logging
 import time
 
-from llama_index.core import Document, MockEmbedding, ServiceContext, StorageContext
+from llama_index.core import Document, MockEmbedding, Settings, StorageContext
 from llama_index.core.base.embeddings.base import BaseEmbedding
-from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core.indices.vector_store import VectorStoreIndex
+from llama_index.core.node_parser.interface import MetadataAwareTextSplitter
 from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.core.schema import BaseNode
 from llama_index.vector_stores.postgres import PGVectorStore
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
 from tc_hivemind_backend.db.utils.delete_data import delete_data
 from tc_hivemind_backend.db.utils.model_hyperparams import load_model_hyperparams
+from tc_hivemind_backend.embeddings import CohereEmbedding
 
 
 class PGVectorAccess:
@@ -31,7 +32,7 @@ class PGVectorAccess:
         **kwargs :
             embed_model : BaseEmbedding
                 an embedding model to use for all tasks defined in this class
-                default is `OpenAIEmbedding`
+                default is `CohereEmbedding`
             llm : str | LLM
                 the llm model to use for all tasks defined in this class
                 default is set to `default` string which would use the `OpenAI`.
@@ -41,12 +42,14 @@ class PGVectorAccess:
         self.dbname = dbname
         self.testing = testing
 
-        self.llm: str | None = kwargs.get("llm", "default")
-        self.embed_model: BaseEmbedding = kwargs.get("embed_model", OpenAIEmbedding())
-
         if testing:
             self.embed_model = MockEmbedding(embed_dim=1024)
             self.llm = None
+        else:
+            self.llm: str | None = kwargs.get("llm", Settings.llm)
+            self.embed_model: BaseEmbedding = kwargs.get(
+                "embed_model", CohereEmbedding()
+            )
 
     def setup_pgvector_index(self, embed_dim: int = 1024):
         """
@@ -95,25 +98,22 @@ class PGVectorAccess:
                 default is set to be 1024 which is the cohere embedding dimension
             max_request_per_day : int
                 the maximum request count per day
-            embed_model : llama_index.embeddings.base.BaseEmbedding
-                to pass the embedding model
-                default will be the OpenAIEmbedding
             batch_info : str
                 the information about the batch number that the loop is within
             node_parser : SimpleNodeParser | None
                 get the node_parser
-                default is None, meaning it would configure it with default values
+                default is None, meaning it would use the default one on
+                `llama_index.core.Setting.node_parser`
         """
         msg = f"COMMUNITYID: {community_id} "
 
         max_request_per_minute = kwargs.get("max_request_per_minute")
         max_request_per_day = kwargs.get("max_request_per_day")
         embed_dim: int = kwargs.get("embed_dim", 1024)
-        self.embed_model = kwargs.get("embed_model", self.embed_model)
         batch_info = kwargs.get("batch_info", "")
-        node_parser = kwargs.get("node_parser", None)
-
-        node_parser = node_parser or SimpleNodeParser.from_defaults()
+        node_parser: MetadataAwareTextSplitter = kwargs.get(
+            "node_parser", Settings.node_parser
+        )
 
         nodes = node_parser.get_nodes_from_documents(documents)
 
@@ -130,8 +130,7 @@ class PGVectorAccess:
 
         vector_store = self.setup_pgvector_index(embed_dim)
         storage_context = StorageContext.from_defaults(vector_store=vector_store)
-        service_context = self._create_service_context(node_parser)
-        self._save_embedded_documents(nodes, service_context, storage_context, msg)
+        self._save_embedded_documents(nodes, storage_context, node_parser, msg)
 
     def save_documents_in_batches(
         self,
@@ -163,9 +162,6 @@ class PGVectorAccess:
                 default is set to be 1024 which is open ai embedding dimension
             max_request_per_day : int
                 the maximum request count per day
-            embed_model : llama_index.embeddings.base.BaseEmbedding
-                to pass the embedding model
-                default will be the OpenAIEmbedding
             deletion_query : str
                 the query to delete some documents
         """
@@ -207,12 +203,9 @@ class PGVectorAccess:
         embed_model: BaseEmbedding = kwargs.get("embed_model", self.embed_model)
 
         vector_store = self.setup_pgvector_index(embed_dim)
-        service_context = ServiceContext.from_defaults(
-            llm=self.llm,
-            embed_model=embed_model,
-        )
         index = VectorStoreIndex.from_vector_store(
-            vector_store=vector_store, service_context=service_context
+            vector_store=vector_store,
+            embed_model=embed_model,
         )
         return index
 
@@ -257,23 +250,19 @@ class PGVectorAccess:
     def _save_embedded_documents(
         self,
         nodes: list[BaseNode],
-        service_context: ServiceContext,
         storage_context: StorageContext,
+        node_parser: SimpleNodeParser,
         msg: str,
     ) -> None:
         logging.info(f"{msg}Saving the embedded documents within the database!")
         _ = VectorStoreIndex(
-            nodes, service_context=service_context, storage_context=storage_context
+            nodes,
+            node_parser=node_parser,
+            storage_context=storage_context,
+            embed_model=self.embed_model,
         )
 
     def _handle_deletion(self, deletion_query: str, msg: str) -> None:
         if deletion_query:
             logging.info(f"{msg}Deleting some previous data in database!")
             self._delete_documents(deletion_query)
-
-    def _create_service_context(self, node_parser: SimpleNodeParser) -> ServiceContext:
-        return ServiceContext.from_defaults(
-            node_parser=node_parser,
-            llm=self.llm,
-            embed_model=self.embed_model,
-        )
