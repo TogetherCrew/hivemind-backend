@@ -4,8 +4,8 @@ import time
 from llama_index.core import Document, MockEmbedding, Settings, StorageContext
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.indices.vector_store import VectorStoreIndex
-from llama_index.core.node_parser.interface import MetadataAwareTextSplitter
 from llama_index.core.node_parser import SimpleNodeParser
+from llama_index.core.node_parser.interface import MetadataAwareTextSplitter
 from llama_index.core.schema import BaseNode
 from llama_index.vector_stores.postgres import PGVectorStore
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
@@ -33,23 +33,16 @@ class PGVectorAccess:
             embed_model : BaseEmbedding
                 an embedding model to use for all tasks defined in this class
                 default is `CohereEmbedding`
-            llm : str | LLM
-                the llm model to use for all tasks defined in this class
-                default is set to `default` string which would use the `OpenAI`.
-                It is the default of the `llama_index` library
         """
         self.table_name = table_name
         self.dbname = dbname
         self.testing = testing
+        self.embed_model: BaseEmbedding = kwargs.get(
+            "embed_model", CohereEmbedding()
+        )
 
         if testing:
             self.embed_model = MockEmbedding(embed_dim=1024)
-            self.llm = None
-        else:
-            self.llm: str | None = kwargs.get("llm", Settings.llm)
-            self.embed_model: BaseEmbedding = kwargs.get(
-                "embed_model", CohereEmbedding()
-            )
 
     def setup_pgvector_index(self, embed_dim: int = 1024):
         """
