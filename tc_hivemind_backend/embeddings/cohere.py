@@ -2,7 +2,7 @@ import os
 
 import cohere
 from dotenv import load_dotenv
-from llama_index.embeddings import BaseEmbedding
+from llama_index.core.base.embeddings.base import BaseEmbedding
 
 
 class CohereEmbedding(BaseEmbedding):
