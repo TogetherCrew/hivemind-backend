@@ -7,7 +7,7 @@ from llama_index.core.indices.vector_store import VectorStoreIndex
 from llama_index.core.node_parser import SimpleNodeParser
 from llama_index.core.node_parser.interface import MetadataAwareTextSplitter
 from llama_index.core.schema import BaseNode
-from llama_index.vector_stores.postgres import PGVectorStore
+from llama_index.legacy.vector_stores import PGVectorStore
 from tc_hivemind_backend.db.credentials import load_postgres_credentials
 from tc_hivemind_backend.db.utils.delete_data import delete_data
 from tc_hivemind_backend.db.utils.model_hyperparams import load_model_hyperparams
