@@ -6,7 +6,7 @@ python-dotenv>=1.0.0
 tc_messageBroker>=1.6.3
 pymongo>=4.3.3, <5.0.0
 neo4j>=5.8.0, <6.0.0
-llama-index-core==0.10.17
+llama-index-core==0.10.34
 llama-index-embeddings-openai==0.1.6
 llama-index-llms-openai==0.1.7
 llama-index-legacy
