@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.core import MockEmbedding
 from llama_index.core.indices.vector_store import VectorStoreIndex
+from llama_index.vector_stores.qdrant import QdrantVectorStore
 from tc_hivemind_backend.qdrant_vector_access import QDrantVectorAccess
 
 
