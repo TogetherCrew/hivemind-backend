@@ -15,3 +15,5 @@ cohere>=4.39, <5.0.0
 pgvector
 asyncpg
 psycopg2-binary
+llama-index-vector-stores-qdrant==0.2.8
+qdrant-client==1.9.1
