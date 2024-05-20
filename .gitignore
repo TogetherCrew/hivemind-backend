@@ -5,5 +5,7 @@ hivemind_back_env/*
 .env
 __pycache__
 *.pyc
+build/*
+tc_hivemind_backend.egg-info
 
 main.ipynb
