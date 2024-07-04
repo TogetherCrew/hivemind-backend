@@ -6,7 +6,7 @@ with open("requirements.txt") as f:
 
 setup(
     name="tc-hivemind-backend",
-    version="1.2.0",
+    version="1.2.1",
     author="Mohammad Amin Dadgar, TogetherCrew",
     maintainer="Mohammad Amin Dadgar",
     maintainer_email="dadgaramin96@gmail.com",
