@@ -24,9 +24,8 @@ class QdrantSingleton:
                 self.client = QdrantClient(
                     host=creds["host"],
                     port=creds["port"],
-                    prefer_grpc=True,
-                    # https=True,
                     api_key=creds["api_key"],
+                    https=False,
                 )
 
             QdrantSingleton.__instance = self
