@@ -69,7 +69,7 @@ class TestMongoSingleton(unittest.TestCase):
             mock_client_instance = mock_client.return_value
             mock_client_instance.server_info.return_value = {"version": "4.4.0"}
 
-            instance = MongoSingleton.get_instance()
+            MongoSingleton.get_instance()
 
             # Verify logging
             log_messages = [record.getMessage() for record in self.log_records]
@@ -87,7 +87,7 @@ class TestMongoSingleton(unittest.TestCase):
                 "Connection failed"
             )
 
-            instance = MongoSingleton.get_instance()
+            MongoSingleton.get_instance()
 
             # Verify logging
             log_messages = [record.getMessage() for record in self.log_records]

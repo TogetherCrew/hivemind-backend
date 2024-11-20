@@ -25,7 +25,7 @@ class ModulesBase:
         modules_docs : list[dict]
             all the module documents that have the `platform` within them
         """
-        client = MongoSingleton.get_instance().client
+        client = MongoSingleton.get_instance().get_client()
         projection = kwargs.get("projection", {})
 
         cursor = client["Core"]["modules"].find(
@@ -53,7 +53,7 @@ class ModulesBase:
             id of communities that has discord platform and hivemind module enabled
 
         """
-        modules = self.query(platform=platform_name, projection={"community"})
+        modules = self.query(platform=platform_name, projection={"community": 1})
         community_ids = list(map(lambda x: str(x["community"]), modules))
 
         return community_ids
@@ -75,7 +75,7 @@ class ModulesBase:
         token : str
             the token that was required for module's ETL process
         """
-        client = MongoSingleton.get_instance().client
+        client = MongoSingleton.get_instance().get_client()
 
         user_id = self.get_platform_metadata(platform_id, "userId")
         user_id = ObjectId(user_id)
