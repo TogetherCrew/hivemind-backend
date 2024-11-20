@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 from tc_hivemind_backend.db.redis import RedisSingleton
 
 

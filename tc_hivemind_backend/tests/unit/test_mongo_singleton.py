@@ -1,6 +1,6 @@
-import unittest
-from unittest.mock import patch, MagicMock
 import logging
+import unittest
+from unittest.mock import MagicMock, patch
 
 # Import the modules to test
 from tc_hivemind_backend.db.mongo import MongoSingleton, get_mongo_uri
