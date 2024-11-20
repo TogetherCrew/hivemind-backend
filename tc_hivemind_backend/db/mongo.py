@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 from pymongo import MongoClient
 
@@ -6,7 +7,7 @@ from .credentials import Credentials
 
 
 class MongoSingleton:
-    __instance: "MongoSingleton" | None = None
+    __instance: Optional["MongoSingleton"] = None
 
     def __init__(self):
         if MongoSingleton.__instance is not None:
