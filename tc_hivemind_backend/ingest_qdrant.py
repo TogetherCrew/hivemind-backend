@@ -2,9 +2,6 @@ import logging
 from datetime import datetime
 
 from dateutil.parser import parse
-from tc_hivemind_backend.db.credentials import Credentials
-from tc_hivemind_backend.db.mongo import get_mongo_uri
-from tc_hivemind_backend.db.redis import RedisSingleton
 from llama_index.core import Document, MockEmbedding
 from llama_index.core.ingestion import (
     DocstoreStrategy,
@@ -17,8 +14,10 @@ from llama_index.storage.docstore.mongodb import MongoDocumentStore
 from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
 from qdrant_client.conversions import common_types as qdrant_types
 from qdrant_client.http import models
-from tc_hivemind_backend.db.credentials import load_postgres_credentials
+from tc_hivemind_backend.db.credentials import Credentials
+from tc_hivemind_backend.db.mongo import get_mongo_uri
 from tc_hivemind_backend.db.qdrant import QdrantSingleton
+from tc_hivemind_backend.db.redis import RedisSingleton
 from tc_hivemind_backend.db.utils.model_hyperparams import load_model_hyperparams
 from tc_hivemind_backend.embeddings.cohere import CohereEmbedding
 from tc_hivemind_backend.qdrant_vector_access import QDrantVectorAccess
@@ -29,9 +28,10 @@ class CustomIngestionPipeline:
         self.community_id = community_id
         self.qdrant_client = QdrantSingleton.get_instance().client
 
+        credentials = Credentials()
         _, self.embedding_dim = load_model_hyperparams()
-        self.pg_creds = load_postgres_credentials()
-        self.redis_cred = Credentials().load_redis()
+        self.pg_creds = credentials.load_postgres()
+        self.redis_cred = credentials.load_redis()
         self.collection_name = f"{community_id}_{collection_name}"
         self.platform_name = collection_name
 
@@ -61,7 +61,7 @@ class CustomIngestionPipeline:
         """
         # qdrant is just collection based and doesn't have any database
         logging.info(
-            f"{len(docs)} docuemnts was extracted and now loading into QDrant DB!"
+            f"{len(docs)} documents were extracted and are now loading into Qdrant DB!"
         )
         vector_access = QDrantVectorAccess(collection_name=self.collection_name)
         vector_store = vector_access.setup_qdrant_vector_store()

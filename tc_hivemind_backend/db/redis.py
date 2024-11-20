@@ -1,6 +1,7 @@
 import logging
 
 import redis
+
 from .credentials import Credentials
 
 

@@ -87,11 +87,21 @@ class Credentials:
         """
         mongo_creds = {}
 
-        mongo_creds["user"] = os.getenv("MONGODB_USER", "root")
-        mongo_creds["password"] = os.getenv("MONGODB_PASS", "pass")
-        mongo_creds["host"] = os.getenv("MONGODB_HOST", "mongo")
-        mongo_creds["port"] = os.getenv("MONGODB_PORT", 27017)
+        user = os.getenv("MONGODB_USER")
+        password = os.getenv("MONGODB_PASS")
+        host = os.getenv("MONGODB_HOST")
+        port = os.getenv("MONGODB_PORT")
 
+        if user is None:
+            raise ValueError("`MONGODB_USER` is not set in env credentials!")
+        if password is None:
+            raise ValueError("`MONGODB_PASS` is not set in env credentials!")
+        if host is None:
+            raise ValueError("`MONGODB_HOST` is not set in env credentials!")
+        if port is None:
+            raise ValueError("`MONGODB_PORT` is not set in env credentials!")
+
+        mongo_creds = {"user": user, "password": password, "host": host, "port": port}
         return mongo_creds
 
     def load_redis(self) -> dict[str, str]:
@@ -125,12 +135,20 @@ class Credentials:
         }
         return redis_creds
 
-    def load_qdrant(self):
+    def load_qdrant(self) -> dict[str, str]:
+        """
+        load qdrant credentials from .env
+
+        Returns:
+        ---------
+        dict[str, str]
+            qdrant credentials containing host, port, and api_key
+        """
         credentials = load_qdrant_credentials()
 
         return credentials
 
-    def load_postgres(self):
+    def load_postgres(self) -> dict[str, str]:
         """
         load postgres credentials into a dictionary
 

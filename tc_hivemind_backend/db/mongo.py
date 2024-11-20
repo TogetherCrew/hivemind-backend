@@ -6,7 +6,7 @@ from .credentials import Credentials
 
 
 class MongoSingleton:
-    __instance = None
+    __instance: "MongoSingleton" | None = None
 
     def __init__(self):
         if MongoSingleton.__instance is not None:
