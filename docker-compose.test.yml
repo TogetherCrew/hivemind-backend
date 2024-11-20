@@ -19,6 +19,9 @@ services:
       - POSTGRES_PORT=5432
       - SENTRY_DSN=sample_dsn
       - SENTRY_ENV=local
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
       - CHUNK_SIZE=512
       - EMBEDDING_DIM=1024
       - QDRANT_HOST=qdrant
