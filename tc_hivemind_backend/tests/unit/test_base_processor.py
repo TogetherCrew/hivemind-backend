@@ -5,7 +5,7 @@ import spacy
 from tc_hivemind_backend.db.utils.preprocess_text import BasePreprocessor
 
 
-class TestDiscordPreprocessor(unittest.TestCase):
+class TestBasePreprocessor(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures before each test method."""
         self.preprocessor = BasePreprocessor()
