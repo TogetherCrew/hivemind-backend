@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
-import spacy
 
+import spacy
 from tc_hivemind_backend.db.utils.preprocess_text import BasePreprocessor
 
 
