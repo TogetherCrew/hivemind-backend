@@ -4,6 +4,7 @@ COPY . .
 RUN pip install .
 
 FROM base as test
+RUN python -m spacy download en_core_web_lg
 RUN chmod +x docker-entrypoint.sh
 CMD ["./docker-entrypoint.sh"]
 
