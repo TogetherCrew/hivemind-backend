@@ -20,9 +20,9 @@ class BasePreprocessor:
 
         """
         try:
-            nlp = spacy.load("en_core_web_lg")
+            nlp = spacy.load("en_core_web_sm")
         except OSError as exp:
-            raise OSError(f"Model spacy `en_core_web_lg` is not installed!") from exp
+            raise OSError(f"Model spacy `en_core_web_sm` is not installed!") from exp
 
         doc = nlp(text)
 

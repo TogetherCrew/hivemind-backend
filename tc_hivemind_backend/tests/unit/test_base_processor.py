@@ -12,7 +12,7 @@ class TestDiscordPreprocessor(unittest.TestCase):
 
     # Tests for extract_main_content method
     @unittest.skipIf(
-        not spacy.util.is_package("en_core_web_lg"), "requires en_core_web_lg model"
+        not spacy.util.is_package("en_core_web_sm"), "requires en_core_web_sm model"
     )
     def test_extract_main_content_basic(self):
         """Test basic content extraction"""
@@ -22,7 +22,7 @@ class TestDiscordPreprocessor(unittest.TestCase):
         self.assertIn("quick brown fox jump lazy dog", result.lower())
 
     @unittest.skipIf(
-        not spacy.util.is_package("en_core_web_lg"), "requires en_core_web_lg model"
+        not spacy.util.is_package("en_core_web_sm"), "requires en_core_web_sm model"
     )
     def test_extract_main_content_with_numbers(self):
         """Test content extraction with numbers"""
@@ -33,7 +33,7 @@ class TestDiscordPreprocessor(unittest.TestCase):
         self.assertNotIn("3", result)
 
     @unittest.skipIf(
-        not spacy.util.is_package("en_core_web_lg"), "requires en_core_web_lg model"
+        not spacy.util.is_package("en_core_web_sm"), "requires en_core_web_sm model"
     )
     def test_extract_main_content_with_urls(self):
         """Test content extraction with URLs"""
@@ -43,7 +43,7 @@ class TestDiscordPreprocessor(unittest.TestCase):
         self.assertIn("check link information", result.lower())
 
     @unittest.skipIf(
-        not spacy.util.is_package("en_core_web_lg"), "requires en_core_web_lg model"
+        not spacy.util.is_package("en_core_web_sm"), "requires en_core_web_sm model"
     )
     def test_extract_main_content_empty_string(self):
         """Test content extraction with empty string"""
@@ -58,5 +58,5 @@ class TestDiscordPreprocessor(unittest.TestCase):
                 self.preprocessor.extract_main_content("Test text")
 
             self.assertIn(
-                "Model spacy `en_core_web_lg` is not installed!", str(context.exception)
+                "Model spacy `en_core_web_sm` is not installed!", str(context.exception)
             )
