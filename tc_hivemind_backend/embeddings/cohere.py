@@ -3,11 +3,13 @@ import os
 import cohere
 from dotenv import load_dotenv
 from llama_index.core.base.embeddings.base import BaseEmbedding
+from tc_hivemind_backend.db.utils.preprocess_text import BasePreprocessor
 
 
 class CohereEmbedding(BaseEmbedding):
     def __init__(self):
         super().__init__()
+        self.text_preprocessor = BasePreprocessor()
 
     def prepare_cohere(
         self,
@@ -34,8 +36,9 @@ class CohereEmbedding(BaseEmbedding):
         co = self.prepare_cohere()
 
         if text is not None:
+            cleaned_text = self._clean_text(text)
             response = co.embed(
-                texts=[text],
+                texts=[cleaned_text],
                 model="embed-multilingual-v3.0",
                 input_type="classification",
                 truncate=None,
@@ -45,8 +48,9 @@ class CohereEmbedding(BaseEmbedding):
 
             return response.embeddings[0]
         elif texts is not None:
+            cleaned_texts = [self._clean_text(text) for text in texts]
             response = co.embed(
-                texts=texts,
+                texts=cleaned_texts,
                 model="embed-multilingual-v3.0",
                 input_type="classification",
                 truncate=None,
@@ -75,3 +79,21 @@ class CohereEmbedding(BaseEmbedding):
     async def _aget_query_embedding(self, query: str) -> list[float]:
         """The asynchronous version of _get_query_embedding."""
         raise NotImplementedError("Not implemented!")
+
+    def _clean_text(self, text: str) -> str:
+        """
+        clean the provided text by removing
+        stop words, removing urls, ascii codes, ...
+
+        Parameters
+        ------------
+        text : str
+            the text data to be cleaned
+
+        Returns
+        ---------
+        cleaned_text : str
+            the cleaned text data
+        """
+        cleaned_text = self.text_preprocessor.extract_main_content(text)
+        return cleaned_text
