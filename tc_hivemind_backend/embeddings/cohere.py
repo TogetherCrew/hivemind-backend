@@ -9,7 +9,6 @@ from tc_hivemind_backend.db.utils.preprocess_text import BasePreprocessor
 class CohereEmbedding(BaseEmbedding):
     def __init__(self):
         super().__init__()
-        self.text_preprocessor = BasePreprocessor()
 
     def prepare_cohere(
         self,
@@ -34,9 +33,10 @@ class CohereEmbedding(BaseEmbedding):
         self, text: str | None = None, texts: list[str] | None = None
     ) -> list[float] | list[list[float]]:
         co = self.prepare_cohere()
+        processor = BasePreprocessor()
 
         if text is not None:
-            cleaned_text = self._clean_text(text)
+            cleaned_text = self._clean_text(text, processor)
             response = co.embed(
                 texts=[cleaned_text],
                 model="embed-multilingual-v3.0",
@@ -48,7 +48,7 @@ class CohereEmbedding(BaseEmbedding):
 
             return response.embeddings[0]
         elif texts is not None:
-            cleaned_texts = [self._clean_text(text) for text in texts]
+            cleaned_texts = [self._clean_text(text, processor) for text in texts]
             response = co.embed(
                 texts=cleaned_texts,
                 model="embed-multilingual-v3.0",
@@ -80,7 +80,7 @@ class CohereEmbedding(BaseEmbedding):
         """The asynchronous version of _get_query_embedding."""
         raise NotImplementedError("Not implemented!")
 
-    def _clean_text(self, text: str) -> str:
+    def _clean_text(self, text: str, processor: BasePreprocessor) -> str:
         """
         clean the provided text by removing
         stop words, removing urls, ascii codes, ...
@@ -95,5 +95,5 @@ class CohereEmbedding(BaseEmbedding):
         cleaned_text : str
             the cleaned text data
         """
-        cleaned_text = self.text_preprocessor.extract_main_content(text)
+        cleaned_text = processor.extract_main_content(text)
         return cleaned_text
