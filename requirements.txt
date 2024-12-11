@@ -17,6 +17,6 @@ asyncpg
 psycopg2-binary
 llama-index-vector-stores-qdrant==0.2.8
 qdrant-client==1.12.1
-llama-index-storage-docstore-redis
-llama-index-storage-docstore-mongodb
+llama-index-storage-docstore-redis>=0.1.0, <1.0.0
+llama-index-storage-docstore-mongodb>=0.1.0, <1.0.0
 spacy
