@@ -7,8 +7,8 @@ tc_messageBroker>=1.6.3
 pymongo>=4.3.3, <5.0.0
 neo4j>=5.8.0, <6.0.0
 llama-index-core==0.10.68.post1
-llama-index-embeddings-openai
-llama-index-llms-openai
+llama-index-embeddings-openai>=0.1.0, <1.0.0
+llama-index-llms-openai>=0.1.0, <1.0.0
 llama-index-legacy
 sqlalchemy[asyncio]
 cohere>=4.39, <5.0.0
