@@ -27,6 +27,7 @@ services:
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
       - QDRANT_API_KEY=
+      - QDRANT_USE_HTTPS=false
     networks:
       - python_service_network
     volumes:
