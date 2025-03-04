@@ -51,6 +51,7 @@ def load_qdrant_credentials() -> dict[str, str]:
     host = os.getenv("QDRANT_HOST")
     port = os.getenv("QDRANT_PORT")
     api_key = os.getenv("QDRANT_API_KEY")
+    use_https = bool(os.getenv("QDRANT_USE_HTTPS", False))
 
     if host is None:
         raise ValueError("`QDRANT_HOST` is not set in env credentials!")
@@ -63,6 +64,7 @@ def load_qdrant_credentials() -> dict[str, str]:
         "host": host,
         "port": port,
         "api_key": api_key,
+        "use_https": use_https,
     }
     return qdrant_creds
 
