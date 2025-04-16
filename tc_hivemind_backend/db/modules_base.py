@@ -32,6 +32,7 @@ class ModulesBase:
             {
                 "options.platforms.name": platform,
                 "name": "hivemind",
+                "activated": True,
             },
             projection,
         )
