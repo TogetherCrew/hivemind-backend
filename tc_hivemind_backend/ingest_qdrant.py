@@ -42,7 +42,9 @@ class CustomIngestionPipeline:
         )
         self.redis_client = RedisSingleton.get_instance().get_client()
 
-    def run_pipeline(self, docs: list[Document], num_workers: int | None = None) -> list[BaseNode]:
+    def run_pipeline(
+        self, docs: list[Document], num_workers: int | None = None
+    ) -> list[BaseNode]:
         """
         vectorize and ingest data into a qdrant collection
 
@@ -86,7 +88,9 @@ class CustomIngestionPipeline:
         )
         logging.info("Pipeline created, now inserting documents into pipeline!")
 
-        nodes = pipeline.run(documents=docs, show_progress=True, num_workers=num_workers)
+        nodes = pipeline.run(
+            documents=docs, show_progress=True, num_workers=num_workers
+        )
         return nodes
 
     def _create_payload_index(
