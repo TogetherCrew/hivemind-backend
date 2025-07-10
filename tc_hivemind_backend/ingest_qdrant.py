@@ -37,7 +37,6 @@ class CustomIngestionPipeline:
         credentials = Credentials()
         _, self.embedding_dim = load_model_hyperparams()
         self.pg_creds = credentials.load_postgres()
-        self.redis_cred = credentials.load_redis()
         self.collection_name = f"{community_id}_{collection_name}"
         self.platform_name = collection_name
 
