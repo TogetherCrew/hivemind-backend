@@ -24,7 +24,13 @@ from tc_hivemind_backend.qdrant_vector_access import QDrantVectorAccess
 
 
 class CustomIngestionPipeline:
-    def __init__(self, community_id: str, collection_name: str, testing: bool = False):
+    def __init__(
+        self,
+        community_id: str,
+        collection_name: str,
+        testing: bool = False,
+        use_cache: bool = True,
+    ):
         self.community_id = community_id
         self.qdrant_client = QdrantSingleton.get_instance().client
 
@@ -40,7 +46,10 @@ class CustomIngestionPipeline:
             if not testing
             else MockEmbedding(embed_dim=self.embedding_dim)
         )
-        self.redis_client = RedisSingleton.get_instance().get_client()
+        if use_cache:
+            self.redis_client = RedisSingleton.get_instance().get_client()
+        else:
+            self.redis_client = None
 
     def run_pipeline(self, docs: list[Document]) -> list[BaseNode]:
         """
@@ -66,6 +75,15 @@ class CustomIngestionPipeline:
         vector_access = QDrantVectorAccess(collection_name=self.collection_name)
         vector_store = vector_access.setup_qdrant_vector_store()
 
+        if self.redis_client:
+            cache = IngestionCache(
+                cache=RedisCache.from_redis_client(self.redis_client),
+                collection=f"{self.collection_name}_ingestion_cache",
+                docstore_strategy=DocstoreStrategy.UPSERTS,
+            )
+        else:
+            cache = None
+
         pipeline = IngestionPipeline(
             transformations=[
                 SemanticSplitterNodeParser(embed_model=self.embed_model),
@@ -77,11 +95,7 @@ class CustomIngestionPipeline:
                 namespace=self.platform_name,
             ),
             vector_store=vector_store,
-            cache=IngestionCache(
-                cache=RedisCache.from_redis_client(self.redis_client),
-                collection=f"{self.collection_name}_ingestion_cache",
-                docstore_strategy=DocstoreStrategy.UPSERTS,
-            ),
+            cache=cache,
             docstore_strategy=DocstoreStrategy.UPSERTS,
         )
         logging.info("Pipeline created, now inserting documents into pipeline!")
