@@ -30,7 +30,24 @@ class CustomIngestionPipeline:
         collection_name: str,
         testing: bool = False,
         use_cache: bool = True,
+        clear_cache_after_ingestion: bool = True,
     ):
+        """
+        Custom ingestion pipeline for qdrant db.
+
+        Parameters
+        ------------
+        community_id : str
+            the community id
+        collection_name : str
+            the collection name (the final collection name will be `{community_id}_{collection_name}`)
+        testing : bool
+            if True, we're using a mock embedding model
+        use_cache : bool
+            if True, we're using a redis cache
+        clear_cache_after_ingestion : bool
+            if True, we're clearing the cache after ingestion
+        """
         self.community_id = community_id
         self.qdrant_client = QdrantSingleton.get_instance().client
 
@@ -49,6 +66,8 @@ class CustomIngestionPipeline:
             self.redis_client = RedisSingleton.get_instance().get_client()
         else:
             self.redis_client = None
+
+        self.clear_cache_after_ingestion = clear_cache_after_ingestion
 
     def run_pipeline(self, docs: list[Document]) -> list[BaseNode]:
         """
@@ -100,6 +119,11 @@ class CustomIngestionPipeline:
         logging.info("Pipeline created, now inserting documents into pipeline!")
 
         nodes = pipeline.run(documents=docs, show_progress=True)
+        # clear cache after ingestion
+        if cache and self.clear_cache_after_ingestion:
+            logging.info("Clearing cache after ingestion!")
+            cache.clear()
+
         return nodes
 
     def _create_payload_index(
