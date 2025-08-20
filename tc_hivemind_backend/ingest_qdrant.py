@@ -11,7 +11,7 @@ from llama_index.core.ingestion import (
 from llama_index.core.node_parser import SemanticSplitterNodeParser
 from llama_index.core.schema import BaseNode
 from llama_index.storage.docstore.mongodb import MongoDocumentStore
-from llama_index.storage.kvstore.redis import RedisKVStore as RedisCache
+from tc_hivemind_backend.db.redis_kv_store import CustomRedisKVStore
 from qdrant_client.conversions import common_types as qdrant_types
 from qdrant_client.http import models
 from tc_hivemind_backend.db.credentials import Credentials
@@ -95,7 +95,7 @@ class CustomIngestionPipeline:
 
         if self.redis_client:
             cache = IngestionCache(
-                cache=RedisCache.from_redis_client(self.redis_client),
+                cache=CustomRedisKVStore.from_redis_client(self.redis_client),
                 collection=f"{self.collection_name}_ingestion_cache",
                 docstore_strategy=DocstoreStrategy.UPSERTS,
             )
