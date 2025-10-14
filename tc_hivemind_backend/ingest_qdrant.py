@@ -89,7 +89,11 @@ class CustomIngestionPipeline:
 
         self.clear_cache_after_ingestion = clear_cache_after_ingestion
 
-    def run_pipeline(self, docs: list[Document], transformations: list[TransformComponent] = None) -> list[BaseNode]:
+    def run_pipeline(
+        self,
+        docs: list[Document],
+        transformations: list[TransformComponent] | None = None,
+    ) -> list[BaseNode]:
         """
         vectorize and ingest data into a qdrant collection
 
