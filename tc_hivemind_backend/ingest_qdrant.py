@@ -9,6 +9,7 @@ from llama_index.core.ingestion import (
     IngestionPipeline,
 )
 from llama_index.core.node_parser import SemanticSplitterNodeParser
+from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.schema import BaseNode
 from llama_index.storage.docstore.mongodb import MongoDocumentStore
 from tc_hivemind_backend.db.redis_kv_store import CustomRedisKVStore
@@ -31,6 +32,8 @@ class CustomIngestionPipeline:
         testing: bool = False,
         use_cache: bool = True,
         clear_cache_after_ingestion: bool = True,
+        embed_model: BaseEmbedding | None = None,
+        embed_dim: int | None = None,
     ):
         """
         Custom ingestion pipeline for qdrant db.
@@ -47,21 +50,38 @@ class CustomIngestionPipeline:
             if True, we're using a redis cache
         clear_cache_after_ingestion : bool
             if True, we're clearing the cache after ingestion
+        embed_model: BaseEmbedding | None
+            the embedding model to use for the ingestion pipeline
+            default is `CohereEmbedding`
+        embed_dim: int | None
+            the embedding dimension to use for the ingestion pipeline
+            default is `None`
         """
         self.community_id = community_id
         self.qdrant_client = QdrantSingleton.get_instance().client
 
         credentials = Credentials()
-        _, self.embedding_dim = load_model_hyperparams()
-        self.pg_creds = credentials.load_postgres()
+        if embed_model is None:
+            if embed_dim is None:
+                _, self.embedding_dim = load_model_hyperparams()
+            else:
+                self.embedding_dim = embed_dim
+        else:
+            if embed_dim is None:
+                raise ValueError("Embed dimension should be provided if embed model is provided!")
+            self.embedding_dim = embed_dim
+
         self.collection_name = f"{community_id}_{collection_name}"
         self.platform_name = collection_name
 
-        self.embed_model = (
-            CohereEmbedding()
-            if not testing
-            else MockEmbedding(embed_dim=self.embedding_dim)
-        )
+        if embed_model is not None:
+            self.embed_model = embed_model
+        else:
+            if testing:
+                self.embed_model = MockEmbedding(embed_dim=self.embedding_dim)
+            else:
+                self.embed_model = CohereEmbedding()
+
         if use_cache:
             self.redis_client = RedisSingleton.get_instance().get_client()
         else:

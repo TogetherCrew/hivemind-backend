@@ -7,8 +7,9 @@ from tc_hivemind_backend.db.utils.preprocess_text import BasePreprocessor
 
 
 class CohereEmbedding(BaseEmbedding):
-    def __init__(self):
+    def __init__(self, model_name: str = "embed-multilingual-v3.0"):
         super().__init__()
+        self.model_name = model_name
 
     def prepare_cohere(
         self,
@@ -39,7 +40,7 @@ class CohereEmbedding(BaseEmbedding):
             cleaned_text = self._clean_text(text, processor)
             response = co.embed(
                 texts=[cleaned_text],
-                model="embed-multilingual-v3.0",
+                model=self.model_name,
                 input_type="classification",
                 truncate=None,
             )
@@ -51,7 +52,7 @@ class CohereEmbedding(BaseEmbedding):
             cleaned_texts = [self._clean_text(text, processor) for text in texts]
             response = co.embed(
                 texts=cleaned_texts,
-                model="embed-multilingual-v3.0",
+                model=self.model_name,
                 input_type="classification",
                 truncate=None,
             )
