@@ -8,6 +8,7 @@ from llama_index.core.ingestion import (
     IngestionCache,
     IngestionPipeline,
 )
+from llama_index.core.schema import TransformComponent
 from llama_index.core.node_parser import SemanticSplitterNodeParser
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.schema import BaseNode
@@ -60,7 +61,6 @@ class CustomIngestionPipeline:
         self.community_id = community_id
         self.qdrant_client = QdrantSingleton.get_instance().client
 
-        credentials = Credentials()
         if embed_model is None:
             if embed_dim is None:
                 _, self.embedding_dim = load_model_hyperparams()
@@ -89,7 +89,7 @@ class CustomIngestionPipeline:
 
         self.clear_cache_after_ingestion = clear_cache_after_ingestion
 
-    def run_pipeline(self, docs: list[Document]) -> list[BaseNode]:
+    def run_pipeline(self, docs: list[Document], transformations: list[TransformComponent] = None) -> list[BaseNode]:
         """
         vectorize and ingest data into a qdrant collection
 
@@ -99,6 +99,8 @@ class CustomIngestionPipeline:
         ------------
         docs : list[llama_index.Document]
             list of llama-index documents
+        transformations : list[TransformComponent]
+            list of transformations to apply to the documents
 
         Returns
         ---------
@@ -122,11 +124,18 @@ class CustomIngestionPipeline:
         else:
             cache = None
 
-        pipeline = IngestionPipeline(
-            transformations=[
+        # default transformations
+        if transformations is None:
+            transformations_pipeline = [
                 SemanticSplitterNodeParser(embed_model=self.embed_model),
                 self.embed_model,
-            ],
+            ]
+        else:
+            transformations_pipeline = transformations
+
+
+        pipeline = IngestionPipeline(
+            transformations=transformations_pipeline,
             docstore=MongoDocumentStore.from_uri(
                 uri=get_mongo_uri(),
                 db_name=f"docstore_{self.community_id}",
