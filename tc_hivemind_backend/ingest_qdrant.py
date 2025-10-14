@@ -105,6 +105,9 @@ class CustomIngestionPipeline:
             list of llama-index documents
         transformations : list[TransformComponent]
             list of transformations to apply to the documents
+            if `None`, it would use the default transformations which are:
+            - SemanticSplitterNodeParser(embed_model=self.embed_model)
+            - self.embed_model
 
         Returns
         ---------
